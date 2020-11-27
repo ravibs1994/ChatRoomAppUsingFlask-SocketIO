@@ -7,7 +7,7 @@
 <body>
     <h1>Welcome In Chat Room</h1>
     <div id="messages"></div>
-    <form id="message_input_form">
+    <form id="message_input_form" >
         <input type="text" id="message_input" placeholder="Enter Message">
         <button type="submit">Send</button>
     </form>
@@ -15,6 +15,7 @@
 </body>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
 <script>
+
     const socket =io.connect("http://127.0.0.1:5000");
 
     socket.on('connect', function(){
@@ -37,6 +38,14 @@
             message_input.focus();
         }
     });
+
+    window.onbeforeunload = function () {
+        socket.emit('leave_room', {
+            username: "{{ username }}",
+            room: "{{ room }}"
+        })
+    };
+
     socket.on('received_message', function (data){
       console.log(data);
       const newNode= document.createElement('div');
@@ -49,7 +58,14 @@
       const newNode= document.createElement('div');
       newNode.innerHTML =`<b>${data.username}</b> has joined room`;
       document.getElementById('messages').appendChild(newNode);
-    })
+    });
+
+    socket.on('leave_room_announcement', function (data) {
+        console.log(data);
+        const newNode = document.createElement('div');
+        newNode.innerHTML = `<b>${data.username}</b> has left the room`;
+        document.getElementById('messages').appendChild(newNode);
+    });
 
 
 </script>
