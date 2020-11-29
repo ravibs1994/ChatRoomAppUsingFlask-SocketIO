@@ -39,19 +39,21 @@ def chat():
        :return:render template
     """
     global room
+    global user_id
     username = request.args.get('username')
     room = int(request.args.get('room'))
     if username and room >0 and room <= 10:
         try:
             #Insert Query Operation
             cursor = mysql.connection.cursor()
-            sql = "INSERT INTO RoomInfo (roomId, username) VALUES (%s, %s)"
-            val = (room, username)
+            sql = "INSERT INTO chatdetails (username,room) VALUES (%s, %s)"
+            val = (username, room)
             cursor.execute(sql, val)
             mysql.connection.commit()
+            user_id = cursor.lastrowid
             cursor.close()
         except Exception:
-            alert(text='UserName AllReady Available', title='Exception', button='OK')
+            alert(text='Something going  wrong ', title='Exception', button='OK')
             return redirect(url_for('home'))
         return render_template('chat.html',username=username, room=room)
 
@@ -70,8 +72,8 @@ def handle_send_message_event(data):
     socketio.emit('received_message', data, room=data['room'])
     msg = data['message']
     cursor = mysql.connection.cursor()
-    sql = "INSERT INTO MessageInfo (roomId, message) VALUES (%s, %s)"
-    val = (room, msg)
+    sql = "INSERT INTO msgDetails (message,user_id) VALUES (%s, %s)"
+    val = (msg,user_id)
     cursor.execute(sql, val)
     mysql.connection.commit()
     cursor.close()
